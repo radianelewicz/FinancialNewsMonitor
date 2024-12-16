@@ -1,0 +1,2 @@
+GO
+CREATE SCHEMA financial;

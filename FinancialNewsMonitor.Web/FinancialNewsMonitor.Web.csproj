@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>FinancialNewsMonitor</RootNamespace>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR" Version="12.4.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Negotiate" Version="8.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FinancialNewsMonitor.Cqrs\FinancialNewsMonitor.Cqrs.csproj" />
+    <ProjectReference Include="..\FinancialNewsMonitor.DataAccessLayer\FinancialNewsMonitor.DataAccessLayer.csproj" />
+    <ProjectReference Include="..\FinancialNewsMonitor.Services\FinancialNewsMonitor.Services.csproj" />
+  </ItemGroup>
+
+</Project>
