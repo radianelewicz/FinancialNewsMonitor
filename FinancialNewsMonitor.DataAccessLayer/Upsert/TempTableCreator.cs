@@ -6,10 +6,10 @@ namespace FinancialNewsMonitor.DataAccessLayer.Upsert;
 
 public static class TempTableCreator
 {
-    private const string _createTempTableSql = "CREATE TABLE {0} {1};";
+    private const string _createTempTableSql = "CREATE TABLE {0} ({1}) ";
 
     public static string GetTempTableName()
-        => string.Concat("#TempTable", Guid.NewGuid().ToString().Replace("-", ""));
+        => string.Concat("#TempTable_", Guid.NewGuid().ToString().Replace("-", ""));
 
     public static async Task CreateAsync(
         DataTable dataTable,
@@ -29,10 +29,10 @@ public static class TempTableCreator
     }
 
     private static string GetCreateTempTableSqlQuery(string tableName, DataColumnCollection dataColumnCollection)
-        => string.Concat(
+        => string.Format(
             _createTempTableSql,
             tableName,
-            string.Join(",", dataColumnCollection.Cast<DataColumn>().ToList().Select(column => $"{column.ColumnName} {GetSqlType(column)}")));
+            string.Join(", ", dataColumnCollection.Cast<DataColumn>().ToList().Select(column => $"[{column.ColumnName}] {GetSqlType(column)}")));
 
     private static string GetSqlType(DataColumn dataColumn)
     {

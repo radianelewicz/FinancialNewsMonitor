@@ -31,28 +31,17 @@ public class SymbolStockDataMapper : ISymbolStockDataMapper
                 symbolRequest.MatchScore),
             new StockDataModel(
                 new MetaDataModel(
+                    symbolRequest.Symbol,
                     stockDataRequest.MetaDataRequest.Information,
-                    stockDataRequest.MetaDataRequest.Symbol,
                     stockDataRequest.MetaDataRequest.LastRefreshed,
                     stockDataRequest.MetaDataRequest.TimeZone),
-                Map(stockDataRequest.StockValuesRequest, stockDataRequest.MetaDataRequest.Symbol)));
+                    stockDataRequest.StockValuesRequest.Select(x => Map(x, symbolRequest.Symbol))));
 
-    private IReadOnlyCollection<StockValueModel> Map(IReadOnlyDictionary<DateOnly, StockValueRequest> stockValuesRequest, string symbol)
-    {
-        var result = new List<StockValueModel>();
 
-        foreach (var kvp in stockValuesRequest)
-        {
-            result.Add(Map(kvp.Value, kvp.Key, symbol));
-        }
-
-        return result;
-    }
-
-    private StockValueModel Map(StockValueRequest request, DateOnly date, string symbol)
+    private StockValueModel Map(StockValueRequest request, string symbol)
         => new StockValueModel(
             symbol,
-            date,
+            request.Date,
             request.Open,
             request.High,
             request.Low,

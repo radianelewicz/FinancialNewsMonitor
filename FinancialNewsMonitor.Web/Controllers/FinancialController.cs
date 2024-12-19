@@ -108,31 +108,6 @@ public class FinancialController : BaseController<FinancialController>
         }
     }
 
-    [HttpDelete("{symbol}")]
-    [ProducesResponseType((int)HttpStatusCode.OK)]
-    [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
-    public async Task<IActionResult> DeleteAsync(string symbol, CancellationToken cancellationToken)
-    {
-        try
-        {
-            var result = await _mediator.Send(new DeleteSymbolStockDataCommand(symbol), cancellationToken);
-
-            if (!result)
-            {
-                return NotFound();
-            }
-
-            return Ok();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex.Message);
-
-            return StatusCode((int)HttpStatusCode.InternalServerError);
-        }
-    }
-
     [HttpPatch]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -148,10 +123,35 @@ public class FinancialController : BaseController<FinancialController>
 
             if (!result)
             {
-                return NotFound();
+                return NotFound(result);
             }
 
-            return Ok();
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message);
+
+            return StatusCode((int)HttpStatusCode.InternalServerError);
+        }
+    }
+
+    [HttpDelete("{symbol}")]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.NotFound)]
+    [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
+    public async Task<IActionResult> DeleteAsync(string symbol, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await _mediator.Send(new DeleteSymbolStockDataCommand(symbol), cancellationToken);
+
+            if (!result)
+            {
+                return NotFound(result);
+            }
+
+            return Ok(result);
         }
         catch (Exception ex)
         {

@@ -1,6 +1,5 @@
 ﻿using FinancialNewsMonitor.Responses;
 using FinancialNewsMonitor.Services.ExternalApiModels;
-using System;
 using System.Globalization;
 
 namespace FinancialNewsMonitor.Mappers;
@@ -30,7 +29,6 @@ public class AlphaVantageApiResultMapper : IAlphaVantageApiResultMapper
         => new StockDataResponse(
             new MetaDataResponse(
                 stockDataApiResult.MetaDataResponse.Information,
-                stockDataApiResult.MetaDataResponse.Symbol,
                 DateOnly.Parse(stockDataApiResult.MetaDataResponse.LastRefreshed),
                 stockDataApiResult.MetaDataResponse.TimeZone),
             Map(stockDataApiResult.StockValues));

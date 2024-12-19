@@ -2,15 +2,15 @@
 
 public sealed record StockDataRequest(
     MetaDataRequest MetaDataRequest,
-    IReadOnlyDictionary<DateOnly, StockValueRequest> StockValuesRequest);
+    IEnumerable<StockValueRequest> StockValuesRequest);
 
 public sealed record MetaDataRequest(
     string Information,
-    string Symbol,
     DateOnly LastRefreshed,
     string TimeZone);
 
 public sealed record StockValueRequest(
+    DateOnly Date,
     decimal Open,
     decimal High,
     decimal Low,

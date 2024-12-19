@@ -16,7 +16,7 @@ public class SymbolRepository : RepositoryBase, IRepository<SymbolModel>
         => await unitOfWork.Connection.QuerySingleOrDefaultAsync<SymbolModel>(
             new CommandDefinition(
                 "SELECT * FROM [financial].[Symbol] WHERE [Symbol] = @symbol",
-                symbol,
+                new { symbol },
                 unitOfWork.Transaction,
                 cancellationToken: cancellationToken));
 
@@ -46,10 +46,11 @@ public class SymbolRepository : RepositoryBase, IRepository<SymbolModel>
         var tempTableName = TempTableCreator.GetTempTableName();
         await TempTableCreator.CreateAsync(dataTable, sqlConnection, sqlTransaction, tempTableName);
         using var copy = new SqlBulkCopy(sqlConnection, SqlBulkCopyOptions.Default, sqlTransaction);
+        copy.DestinationTableName = tempTableName;
         await copy.WriteToServerAsync(dataTable);
         var sql = $@"
 MERGE INTO [financial].[Symbol] s
-USING (SELECT * {tempTableName}) AS src
+USING (SELECT * FROM {tempTableName}) AS src
 ON s.[Symbol] = src.[Symbol]
 WHEN MATCHED THEN
     UPDATE SET
@@ -63,7 +64,7 @@ WHEN MATCHED THEN
         s.[MatchScore] = src.[MatchScore]
 WHEN NOT MATCHED THEN
     INSERT ([Symbol], [Name], [Type], [Region], [MarketOpen], [MarketClose], [Timezone], [Currency], [MatchScore])
-    VALUES (src.[Symbol], src.[Name], src.[Type], src.[Region], src.[MarketOpen], src.[MarketClose], src.[Timezone], src.[Currency], src.[MatchScore])";
+    VALUES (src.[Symbol], src.[Name], src.[Type], src.[Region], src.[MarketOpen], src.[MarketClose], src.[Timezone], src.[Currency], src.[MatchScore]);";
         await sqlConnection.ExecuteAsync(sql, transaction: sqlTransaction);
     }
 
@@ -71,14 +72,14 @@ WHEN NOT MATCHED THEN
         => await unitOfWork.Connection.ExecuteAsync(
             new CommandDefinition(
                 @"DELETE FROM [financial].[Symbol] WHERE [Symbol] = @symbol",
-                symbol,
+                new { symbol },
                 unitOfWork.Transaction,
                 cancellationToken: cancellationToken));
 
     public async Task CreateAsync(SymbolModel model, CancellationToken cancellationToken)
         => await unitOfWork.Connection.ExecuteAsync(
             new CommandDefinition(
-                @"INSERT INTO [financia].[Symbol] ([Symbol], [Name], [Type], [Region], [MarketOpen], [MarketClose], [Timezone], [Currency], [MatchScore])
+                @"INSERT INTO [financial].[Symbol] ([Symbol], [Name], [Type], [Region], [MarketOpen], [MarketClose], [Timezone], [Currency], [MatchScore])
                 VALUES (@Symbol, @Name, @Type, @Region, @MarketOpen, @MarketClose, @Timezone, @Currency, @MatchScore)",
                 model,
                 unitOfWork.Transaction,

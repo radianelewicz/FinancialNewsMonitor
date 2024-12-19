@@ -9,12 +9,13 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection RegisterServices(this IServiceCollection services)
     {
-        services.AddCors(options =>
-            options.AddDefaultPolicy(policy =>
-                policy
-                .AllowAnyOrigin()
-                .AllowAnyHeader()
-                .AllowAnyMethod()));
+        services.AddCors(options => 
+            options.AddDefaultPolicy(
+                builder => 
+                    builder
+                        .AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()));
 
         services.AddControllers();
 

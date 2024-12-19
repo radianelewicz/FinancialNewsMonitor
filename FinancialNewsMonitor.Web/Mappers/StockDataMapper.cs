@@ -14,7 +14,6 @@ public class StockDataMapper : IStockDataModelMapper
         => new StockDataResponse(
                 new MetaDataResponse(
                     symbolStockDataModel.MetaData.Information,
-                    symbolStockDataModel.MetaData.Symbol,
                     symbolStockDataModel.MetaData.LastRefreshed,
                     symbolStockDataModel.MetaData.TimeZone),
                 symbolStockDataModel.StockValues.Select(Map));

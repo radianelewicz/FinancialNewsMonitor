@@ -13,9 +13,9 @@ public static class WebApplicationExtensions
         webApplication.UseHttpsRedirection();
         webApplication.UseStaticFiles();
         webApplication.UseRouting();
-        webApplication.UseCors(x => x.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
-        //webApplication.UseHttpsRedirection();
+        webApplication.UseCors();
         //webApplication.UseAuthorization();
+
         webApplication.MapControllers();
 
         return webApplication;

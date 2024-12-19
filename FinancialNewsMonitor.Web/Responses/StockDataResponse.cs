@@ -6,7 +6,6 @@ public sealed record StockDataResponse(
 
 public sealed record MetaDataResponse(
     string Information,
-    string Symbol,
     DateOnly LastRefreshed,
     string TimeZone);
 

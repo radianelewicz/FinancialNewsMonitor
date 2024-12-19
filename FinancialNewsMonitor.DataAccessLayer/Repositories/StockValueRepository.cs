@@ -16,7 +16,7 @@ public class StockValueRepository : RepositoryBase, IRepository<StockValueModel>
         => await unitOfWork.Connection.QueryFirstOrDefaultAsync<StockValueModel>(
             new CommandDefinition(
                 "SELECT * FROM [financial].[StockValue] WHERE [Symbol] = @symbol",
-                symbol,
+                new { symbol },
                 unitOfWork.Transaction,
                 cancellationToken: cancellationToken));
 
@@ -26,7 +26,7 @@ public class StockValueRepository : RepositoryBase, IRepository<StockValueModel>
                 string.IsNullOrEmpty(symbol)
                     ? "SELECT * FROM [financial].[StockValue]"
                     : "SELECT * FROM [financial].[StockValue] WHERE [Symbol] = @symbol",
-                symbol,
+                new { symbol },
                 unitOfWork.Transaction,
                 cancellationToken: cancellationToken));
 
@@ -48,21 +48,22 @@ public class StockValueRepository : RepositoryBase, IRepository<StockValueModel>
         var tempTableName = TempTableCreator.GetTempTableName();
         await TempTableCreator.CreateAsync(dataTable, sqlConnection, sqlTransaction, tempTableName);
         using var copy = new SqlBulkCopy(sqlConnection, SqlBulkCopyOptions.Default, sqlTransaction);
+        copy.DestinationTableName = tempTableName;
         await copy.WriteToServerAsync(dataTable);
         var sql = $@"
 MERGE INTO [financial].[StockValue] sv
-USING (SELECT * {tempTableName}) AS src
+USING (SELECT * FROM {tempTableName}) AS src
 ON sv.[Symbol] = src.[Symbol] AND sv.[Date] = src.[Date] 
 WHEN MATCHED THEN
     UPDATE SET
-        s.[Open] = src.[Open],
-        s.[High] = src.[High],
-        s.[Low] = src.[Low],
-        s.[Close] = src.[Close],
-        s.[Volume] = src.[Volume]
+        sv.[Open] = src.[Open],
+        sv.[High] = src.[High],
+        sv.[Low] = src.[Low],
+        sv.[Close] = src.[Close],
+        sv.[Volume] = src.[Volume]
 WHEN NOT MATCHED THEN
     INSERT ([Symbol], [Date], [Open], [High], [Low], [Close], [Volume])
-    VALUES (src.[Symbol], src.[Date], src.[Open], src.[High], src.[Low], src.[Close], src.[Volume])";
+    VALUES (src.[Symbol], src.[Date], src.[Open], src.[High], src.[Low], src.[Close], src.[Volume]);";
         await sqlConnection.ExecuteAsync(sql, transaction: sqlTransaction);
     }
 
@@ -70,14 +71,14 @@ WHEN NOT MATCHED THEN
         => await unitOfWork.Connection.ExecuteAsync(
             new CommandDefinition(
                 "DELETE FROM [financial].[StockValue] WHERE [Symbol] = @symbol",
-                symbol,
+                new { symbol },
                 unitOfWork.Transaction,
                 cancellationToken: cancellationToken));
 
     public async Task CreateAsync(StockValueModel model, CancellationToken cancellationToken)
         => await unitOfWork.Connection.ExecuteAsync(
             new CommandDefinition(
-                @"INSERT INTO [financia].[StockValue] ([Symbol], [Date], [Open], [High], [Low], [Close], [Volume])
+                @"INSERT INTO [financial].[StockValue] ([Symbol], [Date], [Open], [High], [Low], [Close], [Volume])
                 VALUES (@Symbol, @Date, @Open, @High, @Low, @Close, @Volume)",
                 model,
                 unitOfWork.Transaction,

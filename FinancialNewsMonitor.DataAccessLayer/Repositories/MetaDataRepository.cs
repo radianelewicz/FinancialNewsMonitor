@@ -16,7 +16,7 @@ public class MetaDataRepository : RepositoryBase, IRepository<MetaDataModel>
         => await unitOfWork.Connection.QuerySingleOrDefaultAsync<MetaDataModel>(
             new CommandDefinition(
                 "SELECT * FROM [financial].[MetaData] WHERE [Symbol] = @symbol",
-                symbol,
+                new { symbol },
                 unitOfWork.Transaction,
                 cancellationToken: cancellationToken));
 
@@ -26,7 +26,7 @@ public class MetaDataRepository : RepositoryBase, IRepository<MetaDataModel>
                 string.IsNullOrEmpty(symbol)
                     ? "SELECT * FROM [financial].[MetaData]"
                     : "SELECT * FROM [financial].[MetaData] WHERE [Symbol] = @symbol",
-                symbol,
+                new { symbol },
                 unitOfWork.Transaction,
                 cancellationToken: cancellationToken));
 
@@ -48,10 +48,11 @@ public class MetaDataRepository : RepositoryBase, IRepository<MetaDataModel>
         var tempTableName = TempTableCreator.GetTempTableName();
         await TempTableCreator.CreateAsync(dataTable, sqlConnection, sqlTransaction, tempTableName);
         using var copy = new SqlBulkCopy(sqlConnection, SqlBulkCopyOptions.Default, sqlTransaction);
+        copy.DestinationTableName = tempTableName;
         await copy.WriteToServerAsync(dataTable);
         var sql = $@"
 MERGE INTO [financial].[MetaData] md
-USING (SELECT * {tempTableName}) AS src
+USING (SELECT * FROM {tempTableName}) AS src
 ON md.[Symbol] = src.[Symbol]
 WHEN MATCHED THEN
     UPDATE SET
@@ -60,7 +61,7 @@ WHEN MATCHED THEN
         md.[TimeZone] = src.[TimeZone]
 WHEN NOT MATCHED THEN
     INSERT ([Information], [LastRefreshed], [TimeZone])
-    VALUES (src.[Information], src.[LastRefreshed], src.[TimeZone])";
+    VALUES (src.[Information], src.[LastRefreshed], src.[TimeZone]);";
         await sqlConnection.ExecuteAsync(sql, transaction: sqlTransaction);
     }
 
@@ -68,14 +69,14 @@ WHEN NOT MATCHED THEN
         => await unitOfWork.Connection.ExecuteAsync(
             new CommandDefinition(
                 "DELETE FROM [financial].[MetaData] WHERE [Symbol] = @symbol",
-                symbol,
+                new { symbol },
                 unitOfWork.Transaction,
                 cancellationToken: cancellationToken));
 
     public async Task CreateAsync(MetaDataModel model, CancellationToken cancellationToken)
         => await unitOfWork.Connection.ExecuteAsync(
             new CommandDefinition(
-                @"INSERT INTO [financia].[MetaData] ([Information], [Symbol], [LastRefreshed], [TimeZone])
+                @"INSERT INTO [financial].[MetaData] ([Information], [Symbol], [LastRefreshed], [TimeZone])
                 VALUES (@Information, @Symbol, @LastRefreshed, @TimeZone)",
                 model,
                 unitOfWork.Transaction,
